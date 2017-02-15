@@ -7,6 +7,9 @@
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Plugin\PluginBase;
+use Drupal\domain_menu_access\Plugin\Block\DomainMenuAccessMenuBlock;
+use Drupal\system\Entity\Menu;
 
 /**
  * Implements hook_ENTITY_TYPE_presave().
@@ -29,9 +32,9 @@ function domain_menu_access_form_menu_link_content_form_alter(&$form, FormStateI
   /** @var \Drupal\menu_link_content\Entity\MenuLinkContent $entity */
   $entity = $form_object->getEntity();
 
-  $config = \Drupal::config('domain_access.settings')->get('menu_enabled');
-
-  if (!empty($config[$entity->getMenuName()])) {
+  /** @var \Drupal\system\MenuInterface $menu */
+  $menu = Menu::load($entity->getMenuName());
+  if ($menu->getThirdPartySetting('domain_menu_access', 'access_enabled')) {
     $form['domain'] = array(
       '#type' => 'details',
       '#title' => t('Domain'),
@@ -53,39 +56,24 @@ function domain_menu_access_form_menu_link_content_form_alter(&$form, FormStateI
 }
 
 /**
- * Implements hook_form_alter().
+ * Implements hook_block_alter().
  */
-function domain_menu_access_form_domain_access_settings_alter(&$form, FormStateInterface $form_state, $form_id) {
-  $config = \Drupal::config('domain_access.settings');
-
-  /** @var \Drupal\Core\Entity\EntityStorageInterface $menu_storage */
-  $menu_storage = \Drupal::service('entity.manager')->getStorage('menu');
-
-  $options = [];
-  /** @var \Drupal\system\Entity\Menu $menu */
-  foreach ($menu_storage->loadMultiple() as $menu) {
-    $options[$menu->getOriginalId()] = $menu->get('label');
+function domain_menu_access_block_alter(&$definitions) {
+  foreach ($definitions as $id => $definition) {
+    if (strpos($id, 'system_menu_block:') === 0) {
+      $derivative_id = NULL;
+      if (strpos($id, PluginBase::DERIVATIVE_SEPARATOR)) {
+        list(, $derivative_id) = explode(PluginBase::DERIVATIVE_SEPARATOR, $id, 2);
+      }
+      if ($derivative_id) {
+        /** @var \Drupal\system\MenuInterface $menu */
+        $menu = Menu::load($derivative_id);
+        if ($menu->getThirdPartySetting('domain_menu_access', 'access_enabled')) {
+          $definition['id'] = 'domain_access_menu_block';
+          $definition['class'] = DomainMenuAccessMenuBlock::class;
+          $definition['provider'] = 'domain_menu_access';
+        }
+      }
+    }
   }
-  asort($options, SORT_NATURAL);
-
-  $form['menu_enabled'] = array(
-    '#type' => 'checkboxes',
-    '#title' => t('Enable Domain Access fields on menu link contents:'),
-    '#options' => $options,
-    '#default_value' => $config->get('menu_enabled') ? : [],
-    '#description' => t('Domain Access fields will be provided on each link to allow domain restrictions. Domain Menu Blocks will be provided for enabled menus.'),
-  );
-
-  $form['actions']['submit']['#submit'][] = 'domain_menu_access_form_submit';
-}
-
-function domain_menu_access_form_submit(array &$form, FormStateInterface $form_state) {
-  $config_factory = \Drupal::configFactory();
-  $config_factory->getEditable('domain_access.settings')
-    ->set('menu_enabled', $form_state->getValue('menu_enabled'))
-    ->save();
-
-  /** @var \Drupal\Core\Block\BlockManager $blockManager */
-  $blockManager = \Drupal::service('plugin.manager.block');
-  $blockManager->clearCachedDefinitions();
 }

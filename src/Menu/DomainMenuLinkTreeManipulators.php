@@ -15,7 +15,7 @@ use Drupal\menu_link_content\Entity\MenuLinkContent;
  * Provides a couple of menu link tree manipulators.
  *
  * This class provides menu link tree manipulators to:
- * - apply unmatching domain restriction
+ * - apply unmatching domain restriction.
  */
 class DomainMenuLinkTreeManipulators {
 
@@ -41,6 +41,8 @@ class DomainMenuLinkTreeManipulators {
   protected $languageManager;
 
   /**
+   * Array of the entity IDs.
+   *
    * @var array
    */
   protected static $entityIdsToLoad = array();
@@ -106,7 +108,7 @@ class DomainMenuLinkTreeManipulators {
    * @param \Drupal\Core\Language\LanguageInterface $current_language
    *   The current language.
    *
-   * @return \Drupal\Core\Access\AccessResultInterface|NULL
+   * @return \Drupal\Core\Access\AccessResultInterface|null
    *   The access result.
    */
   protected function menuLinkCheckAccess(MenuLinkInterface $instance, LanguageInterface $current_language) {
@@ -141,6 +143,7 @@ class DomainMenuLinkTreeManipulators {
    *   Menu link content.
    *
    * @return bool
+   *   Return boolean value.
    */
   protected function isAvailableOnAllAffiliates(MenuLinkContent $entity) {
     if ($entity->get(DOMAIN_ACCESS_ALL_FIELD)->isEmpty()) {
