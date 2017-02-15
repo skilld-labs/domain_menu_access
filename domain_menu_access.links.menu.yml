@@ -1,0 +1,6 @@
+domain_menu_access.settings:
+  title: Domain menu access settings
+  route_name: domain_menu_access.settings
+  parent: domain.admin
+  description: 'Domain menu access module settings'
+  weight: 50

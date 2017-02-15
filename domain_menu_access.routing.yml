@@ -1,0 +1,7 @@
+domain_menu_access.settings:
+  path: '/admin/config/domain/menu/access/settings'
+  defaults:
+    _title: 'Domain menu access settings'
+    _form: '\Drupal\domain_menu_access\Form\DomainMenuAccessSettingsForm'
+  requirements:
+    _permission: 'administer domains'
