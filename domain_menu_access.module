@@ -18,7 +18,7 @@ use Drupal\system\Entity\Menu;
  * link content to domains.
  */
 function domain_menu_access_menu_link_content_presave(EntityInterface $node) {
-  domain_access_presave_generate($node);
+  // domain_access_presave_generate($node);
 }
 
 /**
