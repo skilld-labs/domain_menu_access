@@ -58,7 +58,7 @@ class DomainMenuAccessMenuBlock extends SystemMenuBlock {
         $this->derivatives[$menu]['config_dependencies']['config'] = array($entity->getConfigDependencyName());
       }
     }
-    
+
     return $this->derivatives;
   }
 
