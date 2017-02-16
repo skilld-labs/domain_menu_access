@@ -81,7 +81,14 @@ class DomainMenuAccessSettingsForm extends FormBase {
       }
     }
 
-    return parent::buildForm($form, $form_state);
+    $form['actions']['#type'] = 'actions';
+    $form['actions']['submit'] = [
+      '#type' => 'submit',
+      '#value' => $this->t('Save configuration'),
+      '#button_type' => 'primary',
+    ];
+
+    return $form;
   }
 
   /**
@@ -105,7 +112,7 @@ class DomainMenuAccessSettingsForm extends FormBase {
       $this->blockManager->clearCachedDefinitions();
     }
 
-    parent::submitForm($form, $form_state);
+    drupal_set_message($this->t('The configuration options have been saved.'));
   }
 
 }
