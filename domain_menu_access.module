@@ -8,6 +8,7 @@
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\PluginBase;
+use Drupal\domain\Entity\Domain;
 use Drupal\domain_menu_access\Plugin\Block\DomainMenuAccessMenuBlock;
 use Drupal\system\Entity\Menu;
 
@@ -41,16 +42,19 @@ function domain_menu_access_form_menu_link_content_form_alter(&$form, FormStateI
       '#open' => TRUE,
       '#weight' => 25,
     );
-
+  
+    $domains = Domain::loadMultiple();
+    $options = array_map(function($domain) {
+      return $domain->getDomainId();
+    }, $domains);
+  
+    $form[DOMAIN_ACCESS_FIELD]['widget']['#options'] = $options;
+    $form[DOMAIN_ACCESS_FIELD]['widget']['#default_value'] = [];
     $form[DOMAIN_ACCESS_FIELD]['#group'] = 'domain';
-    $form[DOMAIN_ACCESS_ALL_FIELD]['#group'] = 'domain';
-
-    // Add the options hidden from the user silently to the form.
-    $manager = \Drupal::service('domain.element_manager');
-    $form = $manager->setFormOptions($form, $form_state, DOMAIN_ACCESS_FIELD);
-  }
-  else {
     $form[DOMAIN_ACCESS_FIELD]['#access'] = FALSE;
+  
+    $form[DOMAIN_ACCESS_ALL_FIELD]['default_value_callback'] = 'Drupal\domain_access\DomainAccessManager::getDefaultValue';
+    $form[DOMAIN_ACCESS_ALL_FIELD]['#group'] = 'domain';
     $form[DOMAIN_ACCESS_ALL_FIELD]['#access'] = FALSE;
   }
 }
