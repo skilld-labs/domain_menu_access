@@ -99,9 +99,10 @@ class DomainMenuAccessSettingsForm extends FormBase {
     $values = $form_state->getValues();
     /** @var \Drupal\system\Entity\Menu $item */
     foreach ($this->menuStorage->loadMultiple() as $key => $item) {
-      if ($values[$key]) {
-        if (boolval($values[$key]) !== $item->getThirdPartySetting('domain_menu_access', 'access_enabled')) {
-          $item->setThirdPartySetting('domain_menu_access', 'access_enabled', boolval($values[$key]));
+      if (isset($values[$key])) {
+        $value = boolval($values[$key]);
+        if ($value !== boolval($item->getThirdPartySetting('domain_menu_access', 'access_enabled'))) {
+          $item->setThirdPartySetting('domain_menu_access', 'access_enabled', $value);
           $item->save();
           $clear_cache = TRUE;
         }
@@ -110,9 +111,8 @@ class DomainMenuAccessSettingsForm extends FormBase {
 
     if ($clear_cache) {
       $this->blockManager->clearCachedDefinitions();
+      drupal_set_message($this->t('The configuration options have been saved.'));
     }
-
-    drupal_set_message($this->t('The configuration options have been saved.'));
   }
 
 }
