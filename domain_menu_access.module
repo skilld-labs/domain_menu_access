@@ -5,10 +5,15 @@
  * Domain-based access control for menu link.
  */
 
+use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Field\FieldDefinitionInterface;
+use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\PluginBase;
+use Drupal\Core\Session\AccountInterface;
 use Drupal\domain_menu_access\Plugin\Block\DomainMenuAccessMenuBlock;
+use Drupal\menu_link_content\MenuLinkContentInterface;
 use Drupal\system\Entity\Menu;
 
 /**
@@ -33,25 +38,20 @@ function domain_menu_access_form_menu_link_content_form_alter(&$form, FormStateI
   $entity = $form_object->getEntity();
 
   /** @var \Drupal\system\MenuInterface $menu */
+  $form['domain'] = array(
+    '#type' => 'details',
+    '#title' => t('Domain'),
+    '#open' => TRUE,
+    '#weight' => 25,
+  );
+
+  $form['domain']['#access'] = FALSE;
+  $form[DOMAIN_ACCESS_FIELD]['#group'] = 'domain';
+  $form[DOMAIN_ACCESS_ALL_FIELD]['#group'] = 'domain';
+
   $menu = Menu::load($entity->getMenuName());
   if ($menu->getThirdPartySetting('domain_menu_access', 'access_enabled')) {
-    $form['domain'] = array(
-      '#type' => 'details',
-      '#title' => t('Domain'),
-      '#open' => TRUE,
-      '#weight' => 25,
-    );
-
-    $form[DOMAIN_ACCESS_FIELD]['#group'] = 'domain';
-    $form[DOMAIN_ACCESS_ALL_FIELD]['#group'] = 'domain';
-
-    // Add the options hidden from the user silently to the form.
-    $manager = \Drupal::service('domain.element_manager');
-    $form = $manager->setFormOptions($form, $form_state, DOMAIN_ACCESS_FIELD);
-  }
-  else {
-    $form[DOMAIN_ACCESS_FIELD]['#access'] = FALSE;
-    $form[DOMAIN_ACCESS_ALL_FIELD]['#access'] = FALSE;
+    $form['domain']['#access'] = TRUE;
   }
 }
 
@@ -76,4 +76,41 @@ function domain_menu_access_block_alter(&$definitions) {
       }
     }
   }
+}
+
+/**
+ * Implements hook_entity_field_access().
+ */
+function domain_menu_access_entity_field_access($operation, FieldDefinitionInterface $field_definition, AccountInterface $account, FieldItemListInterface $items = NULL) {
+  // The entity the field is attached to.
+  $entity = $items->getEntity();
+
+  // Hide the domain access fields from the entity add/edit forms
+  // when the user cannot access them.
+  if ($operation != 'edit' || !($entity instanceof MenuLinkContentInterface)) {
+    return AccessResult::neutral();
+  }
+
+  if ($field_definition->getName() == DOMAIN_ACCESS_FIELD) {
+    $access = AccessResult::allowedIfHasPermissions($account, [
+      'publish to any domain',
+      'publish to any assigned domain',
+    ], 'OR');
+  }
+  // Check permissions on the All Affiliates field.
+  elseif ($field_definition->getName() == DOMAIN_ACCESS_ALL_FIELD) {
+    // Treat any other entity as content.
+    $access = AccessResult::allowedIfHasPermission($account,
+      'publish to any domain'
+    );
+  }
+  else {
+    return AccessResult::neutral();
+  }
+
+  if ($access->isAllowed()) {
+    return $access;
+  }
+
+  return AccessResult::forbidden();
 }
