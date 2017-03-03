@@ -69,9 +69,9 @@ function domain_menu_access_block_alter(&$definitions) {
         /** @var \Drupal\system\MenuInterface $menu */
         $menu = Menu::load($derivative_id);
         if ($menu->getThirdPartySetting('domain_menu_access', 'access_enabled')) {
-          $definition['id'] = 'domain_access_menu_block';
-          $definition['class'] = DomainMenuAccessMenuBlock::class;
-          $definition['provider'] = 'domain_menu_access';
+          $definitions[$id]['id'] = 'domain_access_menu_block';
+          $definitions[$id]['class'] = DomainMenuAccessMenuBlock::class;
+          $definitions[$id]['provider'] = 'domain_menu_access';
         }
       }
     }

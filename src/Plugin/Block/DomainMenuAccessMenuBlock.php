@@ -3,8 +3,12 @@
 namespace Drupal\domain_menu_access\Plugin\Block;
 
 use Drupal\Core\Cache\Cache;
+use Drupal\Core\Config\Entity\ConfigEntityStorageInterface;
+use Drupal\Core\Menu\MenuActiveTrailInterface;
+use Drupal\Core\Menu\MenuLinkTreeInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\system\Plugin\Block\SystemMenuBlock;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Provides a Domain Access Menu block.
@@ -17,6 +21,48 @@ use Drupal\system\Plugin\Block\SystemMenuBlock;
  * )
  */
 class DomainMenuAccessMenuBlock extends SystemMenuBlock implements ContainerFactoryPluginInterface {
+
+  /**
+   * Menu entities storage.
+   *
+   * @var \Drupal\Core\Config\Entity\ConfigEntityStorageInterface
+   */
+  protected $menuStorage;
+
+  /**
+   * Constructs a new SystemMenuBlock.
+   *
+   * @param array $configuration
+   *   A configuration array containing information about the plugin instance.
+   * @param string $plugin_id
+   *   The plugin_id for the plugin instance.
+   * @param array $plugin_definition
+   *   The plugin implementation definition.
+   * @param \Drupal\Core\Menu\MenuLinkTreeInterface $menu_tree
+   *   The menu tree service.
+   * @param \Drupal\Core\Menu\MenuActiveTrailInterface $menu_active_trail
+   *   The active menu trail service.
+   * @param ConfigEntityStorageInterface $menu_storage
+   *   The storage of menu entities.
+   */
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, MenuLinkTreeInterface $menu_tree, MenuActiveTrailInterface $menu_active_trail, ConfigEntityStorageInterface $menu_storage) {
+    parent::__construct($configuration, $plugin_id, $plugin_definition, $menu_tree, $menu_active_trail);
+    $this->menuStorage = $menu_storage;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    return new static(
+      $configuration,
+      $plugin_id,
+      $plugin_definition,
+      $container->get('menu.link_tree'),
+      $container->get('menu.active_trail'),
+      $container->get('entity_type.manager')->getStorage('menu')
+    );
+  }
 
   /**
    * {@inheritdoc}
@@ -64,9 +110,10 @@ class DomainMenuAccessMenuBlock extends SystemMenuBlock implements ContainerFact
    *   Config enabled.
    */
   protected function isDomainRestricted($menu_name) {
-    $config = \Drupal::config('domain_access.settings')->get('menu_enabled');
+    /** @var \Drupal\system\MenuInterface $menu */
+    $menu = $this->menuStorage->load($menu_name);
 
-    return !empty($config[$menu_name]);
+    return !empty($menu->getThirdPartySetting('domain_menu_access', 'access_enabled'));
   }
 
   /**
