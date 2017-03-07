@@ -12,19 +12,11 @@ use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\PluginBase;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\domain_entity\DomainEntityMapper;
 use Drupal\domain_menu_access\Plugin\Block\DomainMenuAccessMenuBlock;
+use Drupal\field\Entity\FieldConfig;
 use Drupal\menu_link_content\MenuLinkContentInterface;
 use Drupal\system\Entity\Menu;
-
-/**
- * Implements hook_ENTITY_TYPE_presave().
- *
- * Fires only if Devel Generate module is present, to assign test menu
- * link content to domains.
- */
-function domain_menu_access_menu_link_content_presave(EntityInterface $node) {
-  // domain_access_presave_generate($node);
-}
 
 /**
  * Implements hook_form_BASE_FORM_ID_alter() for \Drupal\menu_link_content\MenuLinkContentForm.
@@ -46,8 +38,7 @@ function domain_menu_access_form_menu_link_content_form_alter(&$form, FormStateI
   );
 
   $form['domain']['#access'] = FALSE;
-  $form[DOMAIN_ACCESS_FIELD]['#group'] = 'domain';
-  $form[DOMAIN_ACCESS_ALL_FIELD]['#group'] = 'domain';
+  $form[DomainEntityMapper::FIELD_NAME]['#group'] = 'domain';
 
   $menu = Menu::load($entity->getMenuName());
   if ($menu->getThirdPartySetting('domain_menu_access', 'access_enabled')) {
@@ -59,19 +50,24 @@ function domain_menu_access_form_menu_link_content_form_alter(&$form, FormStateI
  * Implements hook_block_alter().
  */
 function domain_menu_access_block_alter(&$definitions) {
-  foreach ($definitions as $id => $definition) {
-    if (strpos($id, 'system_menu_block:') === 0) {
-      $derivative_id = NULL;
-      if (strpos($id, PluginBase::DERIVATIVE_SEPARATOR)) {
-        list(, $derivative_id) = explode(PluginBase::DERIVATIVE_SEPARATOR, $id, 2);
-      }
-      if ($derivative_id) {
-        /** @var \Drupal\system\MenuInterface $menu */
-        $menu = Menu::load($derivative_id);
-        if ($menu->getThirdPartySetting('domain_menu_access', 'access_enabled')) {
-          $definitions[$id]['id'] = 'domain_access_menu_block';
-          $definitions[$id]['class'] = DomainMenuAccessMenuBlock::class;
-          $definitions[$id]['provider'] = 'domain_menu_access';
+  // Check field storage and field definitions.
+  $field = FieldConfig::loadByName('menu_link_content', 'menu_link_content', DomainEntityMapper::FIELD_NAME);
+
+  if ($field) {
+    foreach ($definitions as $id => $definition) {
+      if (strpos($id, 'system_menu_block:') === 0) {
+        $derivative_id = NULL;
+        if (strpos($id, PluginBase::DERIVATIVE_SEPARATOR)) {
+          list(, $derivative_id) = explode(PluginBase::DERIVATIVE_SEPARATOR, $id, 2);
+        }
+        if ($derivative_id) {
+          /** @var \Drupal\system\MenuInterface $menu */
+          $menu = Menu::load($derivative_id);
+          if ($menu->getThirdPartySetting('domain_menu_access', 'access_enabled')) {
+            $definitions[$id]['id'] = 'domain_access_menu_block';
+            $definitions[$id]['class'] = DomainMenuAccessMenuBlock::class;
+            $definitions[$id]['provider'] = 'domain_menu_access';
+          }
         }
       }
     }

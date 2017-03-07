@@ -5,6 +5,6 @@ package: Domain
 version: VERSION
 core: 8.x
 dependencies:
-  - domain_access
+  - domain_entity
   - menu_link_content
 configure: domain_menu_access.settings

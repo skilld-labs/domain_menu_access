@@ -4,15 +4,16 @@ dependencies:
   module:
     - domain
     - menu_link_content
-id: menu_link_content.field_domain_all_affiliates
-field_name: field_domain_all_affiliates
+id: menu_link_content.domain_access
+field_name: domain_access
 entity_type: menu_link_content
-type: boolean
-settings: {  }
+type: entity_reference
+settings:
+  target_type: domain
 module: core
 locked: false
-cardinality: 1
+cardinality: -1
 translatable: true
 indexes: {  }
-persist_with_no_fields: false
+persist_with_no_fields: true
 custom_storage: false
