@@ -9,6 +9,7 @@ use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\Core\Menu\InaccessibleMenuLink;
 use Drupal\Core\Menu\MenuLinkInterface;
 use Drupal\domain\DomainNegotiator;
+use Drupal\domain_entity\DomainEntityMapper;
 use Drupal\menu_link_content\Entity\MenuLinkContent;
 
 /**
@@ -123,7 +124,7 @@ class DomainMenuLinkTreeManipulators {
 
       if (!$this->isAvailableOnAllAffiliates($entity)) {
         $domain_access = [];
-        foreach ($entity->get(DOMAIN_ACCESS_FIELD)->getValue() as $reference) {
+        foreach ($entity->get(DomainEntityMapper::FIELD_NAME)->getValue() as $reference) {
           $domain_access[] = $reference['target_id'];
         }
 
@@ -146,13 +147,7 @@ class DomainMenuLinkTreeManipulators {
    *   Return boolean value.
    */
   protected function isAvailableOnAllAffiliates(MenuLinkContent $entity) {
-    if ($entity->get(DOMAIN_ACCESS_ALL_FIELD)->isEmpty()) {
-      return FALSE;
-    }
-
-    $all_affiliates = $entity->get(DOMAIN_ACCESS_ALL_FIELD)->first()->getString();
-
-    return !empty($all_affiliates);
+    return empty($entity->get(DomainEntityMapper::FIELD_NAME)->isEmpty());
   }
 
   /**
