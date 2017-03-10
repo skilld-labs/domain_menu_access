@@ -6,7 +6,6 @@
  */
 
 use Drupal\domain_entity\DomainEntityMapper;
-use Drupal\field\Entity\FieldConfig;
 
 /**
  * Implements hook_uninstall().

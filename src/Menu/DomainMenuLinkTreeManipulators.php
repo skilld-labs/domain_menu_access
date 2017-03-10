@@ -3,7 +3,7 @@
 namespace Drupal\domain_menu_access\Menu;
 
 use Drupal\Core\Access\AccessResult;
-use Drupal\Core\Entity\EntityManagerInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Language\LanguageInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\Core\Menu\InaccessibleMenuLink;
@@ -21,11 +21,11 @@ use Drupal\menu_link_content\Entity\MenuLinkContent;
 class DomainMenuLinkTreeManipulators {
 
   /**
-   * The entity manager.
+   * The entity type manager.
    *
-   * @var \Drupal\Core\Entity\EntityManagerInterface
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
    */
-  protected $entityManager;
+  protected $entityTypeManager;
 
   /**
    * The domain negotiator.
@@ -49,15 +49,17 @@ class DomainMenuLinkTreeManipulators {
   protected static $entityIdsToLoad = array();
 
   /**
-   * Constructor.
+   * Creates DomainMenuLinkTreeManipulators object.
    *
-   * @param \Drupal\Core\Entity\EntityManagerInterface $entity_manager
-   *   The entity manager.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   *   The entity type manager.
    * @param \Drupal\domain\DomainNegotiator $domain_negotiator
    *   The domain negotiator.
+   * @param \Drupal\Core\Language\LanguageManagerInterface $language_manager
+   *   The language manager.
    */
-  public function __construct(EntityManagerInterface $entity_manager, DomainNegotiator $domain_negotiator, LanguageManagerInterface $language_manager) {
-    $this->entityManager = $entity_manager;
+  public function __construct(EntityTypeManagerInterface $entity_type_manager, DomainNegotiator $domain_negotiator, LanguageManagerInterface $language_manager) {
+    $this->entityTypeManager = $entity_type_manager;
     $this->domainNegotiator = $domain_negotiator;
     $this->languageManager = $language_manager;
   }
@@ -116,7 +118,7 @@ class DomainMenuLinkTreeManipulators {
     // Default access.
     $access_result = AccessResult::allowed();
 
-    /** @var MenuLinkContent $entity */
+    /** @var \Drupal\menu_link_content\Entity\MenuLinkContent $entity */
     if ($entity = $this->loadMenuLinkContentEntity($instance)) {
       if ($entity->hasTranslation($current_language->getId())) {
         $entity = $entity->getTranslation($current_language->getId());
@@ -144,10 +146,10 @@ class DomainMenuLinkTreeManipulators {
    *   Menu link content.
    *
    * @return bool
-   *   Return boolean value.
+   *   Returns TRUE when no limits on domains, otherwise FALSE.
    */
   protected function isAvailableOnAllAffiliates(MenuLinkContent $entity) {
-    return empty($entity->get(DomainEntityMapper::FIELD_NAME)->isEmpty());
+    return $entity->get(DomainEntityMapper::FIELD_NAME)->isEmpty();
   }
 
   /**
@@ -160,7 +162,7 @@ class DomainMenuLinkTreeManipulators {
    *   The menu link entity.
    */
   protected function loadMenuLinkContentEntity(MenuLinkInterface $instance) {
-    $storage = $this->entityManager->getStorage('menu_link_content');
+    $storage = $this->entityTypeManager->getStorage('menu_link_content');
     $entity = NULL;
 
     if (!empty($instance->getPluginDefinition()['metadata']['entity_id'])) {
