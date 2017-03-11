@@ -1,0 +1,9 @@
+domain_menu_access:
+  version: 1.x
+  js:
+    js/domain_menu_access.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/drupalSettings
+    - core/drupal.debounce
