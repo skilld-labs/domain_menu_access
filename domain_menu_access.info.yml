@@ -1,5 +1,5 @@
 name: Domain Menu Access
-description: 'Domain-based access control for menu link.'
+description: 'Domain-based access control for Drupal core menu links.'
 type: module
 package: Domain
 version: VERSION

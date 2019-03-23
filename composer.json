@@ -1,0 +1,10 @@
+{
+  "name": "skilld-labs/domain_menu_access",
+  "description": "Domain-based access control for Drupal core menu links.",
+  "type": "drupal-module",
+  "license": "GPL-2.0+",
+  "minimum-stability": "dev",
+  "require": {
+    "drupal/domain_entity": "^1"
+  }
+}
