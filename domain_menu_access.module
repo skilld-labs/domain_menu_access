@@ -6,7 +6,6 @@
  */
 
 use Drupal\Core\Access\AccessResult;
-use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Form\FormStateInterface;
@@ -29,20 +28,13 @@ function domain_menu_access_form_menu_link_content_form_alter(&$form, FormStateI
   /** @var \Drupal\menu_link_content\Entity\MenuLinkContent $entity */
   $entity = $form_object->getEntity();
 
+  $form[DomainEntityMapper::FIELD_NAME]['#access'] = FALSE;
+
   /** @var \Drupal\system\MenuInterface $menu */
-  $form['domain'] = array(
-    '#type' => 'details',
-    '#title' => t('Domain'),
-    '#open' => TRUE,
-    '#weight' => 25,
-  );
-
-  $form['domain']['#access'] = FALSE;
-  $form[DomainEntityMapper::FIELD_NAME]['#group'] = 'domain';
-
   $menu = Menu::load($entity->getMenuName());
   if ($menu->getThirdPartySetting('domain_menu_access', 'access_enabled')) {
-    $form['domain']['#access'] = TRUE;
+    $form[DomainEntityMapper::FIELD_NAME]['#access'] = TRUE;
+    $form['#attached']['library'][] = 'domain_menu_access/domain_menu_access';
   }
 }
 

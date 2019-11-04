@@ -45,7 +45,7 @@ class DomainMenuAccessMenuBlock extends SystemMenuBlock implements ContainerFact
    * @param ConfigEntityStorageInterface $menu_storage
    *   The storage of menu entities.
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, MenuLinkTreeInterface $menu_tree, MenuActiveTrailInterface $menu_active_trail, ConfigEntityStorageInterface $menu_storage) {
+  public function __construct(array $configuration, $plugin_id, array $plugin_definition, MenuLinkTreeInterface $menu_tree, MenuActiveTrailInterface $menu_active_trail, ConfigEntityStorageInterface $menu_storage) {
     parent::__construct($configuration, $plugin_id, $plugin_definition, $menu_tree, $menu_active_trail);
     $this->menuStorage = $menu_storage;
   }
